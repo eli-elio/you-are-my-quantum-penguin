@@ -1,6 +1,7 @@
 # You Are My *Quantum* Penguin
 
 **Game Title:** You Are My *Quantum* Penguin
+
 **Developer:** Eli Zobens
 
 ## Game Concept
