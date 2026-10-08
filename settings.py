@@ -1,0 +1,27 @@
+# Window
+WIDTH = 1280
+HEIGHT = 720
+FPS = 60
+
+# World
+WORLD_WIDTH = 4000
+WORLD_HEIGHT = 2400
+
+# Penguin
+PENGUIN_WIDTH = 70
+PENGUIN_HEIGHT = 90
+PENGUIN_SPEED = 5
+
+# Mountains (not walkable)
+MOUNTAINS_TOP = 0
+MOUNTAINS_BOTTOM = 400
+
+# Ice (walkable)
+ICE_TOP = 400
+ICE_BOTTOM = 1350
+
+# Ice edge: 1350–1450
+
+# Water (swimmable)
+WATER_TOP = 1450
+WATER_BOTTOM = 2400
