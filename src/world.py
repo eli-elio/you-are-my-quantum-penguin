@@ -68,7 +68,8 @@ class World:
         player,
         obstacle,
         player_x=None,
-        player_y=None
+        player_y=None,
+        player_mask=None
     ):
         # Use current player position unless
         # another position was supplied
@@ -88,7 +89,10 @@ class World:
         )
 
         # Check if opaque pixels overlap
-        overlap = player.mask.overlap(
+        if player_mask is None:
+            player_mask = player.mask
+
+        overlap = player_mask.overlap(
             obstacle["mask"],
             (offset_x, offset_y)
         )
@@ -132,6 +136,71 @@ class World:
                 player.y = old_y
                 break
 
+    def handle_superposition_collision(
+            self,
+            player,
+            old_x,
+            old_y,
+            new_x,
+            new_y,
+            active_layer
+    ):
+        """
+        Handles collisions for both quantum projections.
+        """
+
+        from settings import (
+            ICE_TOP,
+            ICE_BOTTOM,
+            WATER_TOP,
+            WATER_BOTTOM
+        )
+
+        # Use the walking penguin mask for ice collisions.
+        ice_mask = player.get_ice_collision_mask()
+
+        ice_height = ICE_BOTTOM - ICE_TOP
+        water_height = WATER_BOTTOM - WATER_TOP
+
+        def get_ice_y(y):
+            if active_layer == 0:
+                return y
+
+            relative_y = (y - WATER_TOP) / water_height
+
+            return ICE_TOP + relative_y * ice_height
+
+        old_ice_y = get_ice_y(old_y)
+        new_ice_y = get_ice_y(new_y)
+
+        # X COLLISION
+        player.x = new_x
+        player.y = old_y
+
+        for obstacle in self.ice_obstacles:
+            if self.masks_collide(
+                    player,
+                    obstacle,
+                    player.x,
+                    old_ice_y,
+                    player_mask=ice_mask
+            ):
+                player.x = old_x
+                break
+
+        # Y COLLISION
+        player.y = new_y
+
+        for obstacle in self.ice_obstacles:
+            if self.masks_collide(
+                    player,
+                    obstacle,
+                    player.x,
+                    new_ice_y,
+                    player_mask=ice_mask
+            ):
+                player.y = old_y
+                break
 
     def resolve_layer_switch(
         self,

@@ -201,49 +201,89 @@ class FishManager:
             fish.draw(screen, camera)
 
     # FISH CATCHING
-    def try_catch(self, player, layer):
+    def try_catch(self, player, layer, is_superposition=False):
         """
-        Attempt to catch the nearest fish
-        within interaction range.
+        Catch fish based on the player's quantum state.
 
-        Returns:
-            "caught"  - successful catch
-            "missed" - measurement found the fish
-                       in the opposite layer
-            "none"   - no fish within range
+        In superposition, the penguin can catch a nearby fish
+        regardless of which layer the fish collapses into.
         """
+
+        from settings import (
+            ICE_TOP,
+            ICE_BOTTOM,
+            WATER_TOP,
+            WATER_BOTTOM
+        )
 
         catch_range = 110
 
+        ice_height = ICE_BOTTOM - ICE_TOP
+        water_height = WATER_BOTTOM - WATER_TOP
+
         player_x = player.x + player.width / 2
-        player_y = player.y + player.height / 2
+
+        if layer == 0:
+            relative_y = (player.y - ICE_TOP) / ice_height
+        else:
+            relative_y = (player.y - WATER_TOP) / water_height
+
+        relative_y = max(0.0, min(1.0, relative_y))
 
         nearest_fish = None
         nearest_distance = catch_range
 
+        # Find the nearest fish.
         for fish in self.fish:
 
-            fish_x, fish_y = fish.get_position(layer)
+            # Check both layers in superposition.
+            if is_superposition:
+                layers_to_check = (0, 1)
+            else:
+                layers_to_check = (layer,)
 
-            distance = math.hypot(
-                fish_x - player_x,
-                fish_y - player_y
-            )
+            for current_layer in layers_to_check:
 
-            if distance < nearest_distance:
+                if current_layer == 0:
+                    projected_y = ICE_TOP + relative_y * ice_height
+                    probability = abs(fish.alpha) ** 2
+                else:
+                    projected_y = WATER_TOP + relative_y * water_height
+                    probability = abs(fish.beta) ** 2
 
-                nearest_distance = distance
-                nearest_fish = fish
+                if probability <= 1e-9:
+                    continue
+
+                player_y = projected_y + player.height / 2
+
+                fish_x, fish_y = fish.get_position(
+                    current_layer
+                )
+
+                distance = math.hypot(
+                    fish_x - player_x,
+                    fish_y - player_y
+                )
+
+                if distance < nearest_distance:
+                    nearest_distance = distance
+                    nearest_fish = fish
 
         if nearest_fish is None:
             return "none"
 
+        # Measure the fish using the Born rule.
         measurement = nearest_fish.measure()
 
-        if measurement == layer:
-
+        if is_superposition:
+            # Both penguin projections are available.
             self.fish.remove(nearest_fish)
+            return "caught"
 
+        # Normal mode: the fish must collapse
+        # into the penguin's current layer.
+        if measurement == layer:
+            self.fish.remove(nearest_fish)
             return "caught"
 
         return "missed"

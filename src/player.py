@@ -236,7 +236,6 @@ class Player:
                 frame
             )
 
-            # Šūpošanās laiks
             self.swim_time += 1
 
         # UPDATE COLLISION MASK
@@ -251,6 +250,33 @@ class Player:
         self.mask_offset_y = (
             self.height - self.image.get_height()
         ) // 2
+
+    def get_ice_collision_mask(self):
+        """
+        Returns the collision mask for the ice projection.
+        """
+
+        direction = self.direction
+
+        if direction in ("up_right", "down_right"):
+            direction = "right"
+        elif direction in ("up_left", "down_left"):
+            direction = "left"
+
+        if direction not in self.walk_animations:
+            direction = "down"
+
+        if not self.moving:
+            if direction == "right":
+                image = self.idle_side
+            elif direction == "left":
+                image = self.idle_side_left
+            else:
+                image = self.walk_animations[direction][0]
+        else:
+            image = self.walk_animations[direction][self.animation_frame]
+
+        return pygame.mask.from_surface(image)
 
     # PLAYER MOVEMENT
     def move(self, keys, quantum_state):
@@ -402,6 +428,75 @@ class Player:
         # DRAW
         screen.blit(
             self.image,
+            (
+                camera.apply_x(image_rect.x),
+                camera.apply_y(image_rect.y)
+            )
+        )
+
+    def draw_projection(self, screen, camera, target_layer, alpha=120):
+        """
+        Draws a translucent penguin projection
+        in the specified world layer.
+        """
+
+        ice_height = ICE_BOTTOM - ICE_TOP
+        water_height = WATER_BOTTOM - WATER_TOP
+
+        # Calculate the relative vertical position.
+        if ICE_TOP <= self.y < ICE_BOTTOM:
+            relative_y = (self.y - ICE_TOP) / ice_height
+        else:
+            relative_y = (self.y - WATER_TOP) / water_height
+
+        relative_y = max(0.0, min(1.0, relative_y))
+
+        # Map the position to the target layer.
+        if target_layer == 0:
+            projection_y = ICE_TOP + relative_y * ice_height
+        else:
+            projection_y = WATER_TOP + relative_y * water_height
+
+        # Choose an animation frame for the target layer.
+        if target_layer == 0:
+            direction = self.direction
+
+            if direction in ("up_right", "down_right"):
+                direction = "right"
+            elif direction in ("up_left", "down_left"):
+                direction = "left"
+
+            if direction not in self.walk_animations:
+                direction = "down"
+
+            if not self.moving:
+                if direction == "right":
+                    image = self.idle_side
+                elif direction == "left":
+                    image = self.idle_side_left
+                else:
+                    image = self.walk_animations[direction][0]
+            else:
+                image = self.walk_animations[direction][self.animation_frame]
+
+        else:
+            frame = self.swim_frames[self.animation_frame]
+            image = self.get_swim_image(frame)
+
+        # Create a transparent copy.
+        projection_image = image.copy()
+        projection_image.set_alpha(alpha)
+
+        # Center the projection on its logical position.
+        image_rect = projection_image.get_rect()
+
+        image_rect.center = (
+            self.x + self.width / 2,
+            projection_y + self.height / 2
+        )
+
+        screen.blit(
+            projection_image,
             (
                 camera.apply_x(image_rect.x),
                 camera.apply_y(image_rect.y)
