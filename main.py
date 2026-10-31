@@ -1,17 +1,13 @@
 import pygame
 
 from settings import *
-from camera import Camera
-from player import Player
-from world import World
-from background import Background
-from fish_manager import FishManager
+from src.camera import Camera
+from src.player import Player
+from src.world import World
+from src.background import Background
+from src.fish_manager import FishManager
 
-
-# ==================================================
 # INITIALIZATION
-# ==================================================
-
 pygame.init()
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -19,22 +15,14 @@ pygame.display.set_caption("You Are My Quantum Penguin")
 
 clock = pygame.time.Clock()
 
-
-# ==================================================
 # GAME OBJECTS
-# ==================================================
-
 camera = Camera()
 player = Player()
 world = World()
 background = Background()
 fish_manager = FishManager()
 
-
-# ==================================================
 # GAME STATE
-# ==================================================
-
 # 0 = ice
 # 1 = water
 quantum_state = 0
@@ -47,11 +35,7 @@ X_COST = 1
 H_COST = 2
 Z_COST = 3
 
-
-# ==================================================
 # HUD
-# ==================================================
-
 fish_icon = pygame.image.load(
     "assets/fish/fish_1.png"
 ).convert_alpha()
@@ -79,11 +63,7 @@ message_timer = 0.0
 
 MESSAGE_DURATION = 1.8
 
-
-# ==================================================
 # HELPER FUNCTIONS
-# ==================================================
-
 def show_message(text):
     global message, message_timer
 
@@ -102,8 +82,7 @@ def switch_layer(player, world, current_state):
     ice_height = ICE_BOTTOM - ICE_TOP
     water_height = WATER_BOTTOM - WATER_TOP
 
-    # ---------------- ICE TO WATER ----------------
-
+    # ICE TO WATER
     if current_state == 0:
 
         relative_y = (
@@ -117,8 +96,7 @@ def switch_layer(player, world, current_state):
 
         return 1
 
-    # ---------------- WATER TO ICE ----------------
-
+    # WATER TO ICE
     relative_y = (
         player.y - WATER_TOP
     ) / water_height
@@ -138,21 +116,14 @@ def switch_layer(player, world, current_state):
 
     return 0
 
-
-# ==================================================
 # MAIN GAME LOOP
-# ==================================================
-
 running = True
 
 while running:
 
     dt = clock.tick(FPS) / 1000.0
 
-    # ==================================================
     # EVENTS
-    # ==================================================
-
     for event in pygame.event.get():
 
         if event.type == pygame.QUIT:
@@ -160,10 +131,7 @@ while running:
 
         if event.type == pygame.KEYDOWN:
 
-            # ------------------------------------------
             # X GATE: SWITCH QUANTUM LAYER
-            # ------------------------------------------
-
             if event.key == pygame.K_x:
 
                 if fish_count >= X_COST:
@@ -189,10 +157,7 @@ while running:
                         "Not enough fish for X gate!"
                     )
 
-            # ------------------------------------------
             # CATCH FISH
-            # ------------------------------------------
-
             elif event.key == pygame.K_e:
 
                 result = fish_manager.try_catch(
@@ -220,30 +185,21 @@ while running:
                         "No fish within reach"
                     )
 
-            # ------------------------------------------
             # H GATE: NOT IMPLEMENTED YET
-            # ------------------------------------------
-
             elif event.key == pygame.K_h:
 
                 show_message(
                     "H gate coming soon!"
                 )
 
-            # ------------------------------------------
             # Z GATE: NOT IMPLEMENTED YET
-            # ------------------------------------------
-
             elif event.key == pygame.K_z:
 
                 show_message(
                     "Z gate coming soon!"
                 )
 
-    # ==================================================
     # PLAYER MOVEMENT
-    # ==================================================
-
     keys = pygame.key.get_pressed()
 
     old_x, old_y, new_x, new_y = player.move(
@@ -251,10 +207,7 @@ while running:
         quantum_state
     )
 
-    # ==================================================
     # COLLISION
-    # ==================================================
-
     world.handle_collision(
         player,
         old_x,
@@ -264,10 +217,7 @@ while running:
         quantum_state
     )
 
-    # ==================================================
     # CAMERA
-    # ==================================================
-
     camera.update(
         player.x,
         player.y,
@@ -275,20 +225,14 @@ while running:
         player.height
     )
 
-    # ==================================================
     # FISH UPDATE
-    # ==================================================
-
     fish_manager.update(
         dt,
         camera,
         world
     )
 
-    # ==================================================
     # MESSAGE TIMER
-    # ==================================================
-
     if message_timer > 0:
 
         message_timer -= dt
@@ -298,22 +242,19 @@ while running:
             message_timer = 0
             message = ""
 
-    # ==================================================
-    # DRAW
-    # ==================================================
+    #DRAW
 
-    # ---------------- CLEAR SCREEN ----------------
-
+    #CLEAR SCREEN
     screen.fill((190, 225, 240))
 
-    # ---------------- BACKGROUND ----------------
+    # BACKGROUND
 
     background.draw(
         screen,
         camera
     )
 
-    # ---------------- WORLD ----------------
+    # WORLD
 
     world.draw(
         screen,
@@ -321,14 +262,14 @@ while running:
         quantum_state
     )
 
-    # ---------------- FISH ----------------
+    # FISH
 
     fish_manager.draw(
         screen,
         camera
     )
 
-    # ---------------- PLAYER ----------------
+    # PLAYER
 
     player.draw(
         screen,
@@ -336,10 +277,7 @@ while running:
         quantum_state
     )
 
-    # ==================================================
     # DRAW HUD
-    # ==================================================
-
     screen.blit(
         fish_icon,
         (20, 20)
@@ -356,7 +294,7 @@ while running:
         (85, 23)
     )
 
-    # ---------------- QUANTUM GATE COSTS ----------------
+    #QUANTUM GATE COSTS
 
     gate_text = message_font.render(
         "X: 1 fish   H: 2 fish   Z: 3 fish",
@@ -369,7 +307,7 @@ while running:
         (20, 60)
     )
 
-    # ---------------- INTERACTION MESSAGE ----------------
+    #INTERACTION MESSAGE
 
     if message:
 
@@ -404,10 +342,7 @@ while running:
             message_rect
         )
 
-    # ==================================================
     # DISPLAY UPDATE
-    # ==================================================
-
     pygame.display.flip()
 
 

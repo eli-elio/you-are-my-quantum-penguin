@@ -17,8 +17,7 @@ from settings import (
 class Player:
     def __init__(self):
 
-        # ---------------- PLAYER SETTINGS ----------------
-
+        # PLAYER SETTINGS
         self.width = PENGUIN_WIDTH
         self.height = PENGUIN_HEIGHT
         self.speed = PENGUIN_SPEED
@@ -26,8 +25,7 @@ class Player:
         self.x = WIDTH // 2
         self.y = ICE_BOTTOM - self.height - 120
 
-        # ---------------- ANIMATION SETTINGS ----------------
-
+        # ANIMATION SETTINGS
         self.direction = "down"
         self.moving = False
 
@@ -37,18 +35,16 @@ class Player:
         self.walk_animation_speed = 10
         self.swim_animation_speed = 12
 
-        # ---------------- SWIMMING EFFECT ----------------
-
+        # SWIMMING EFFECT
         self.swim_time = 0
 
-        # Cik pikseļus pingvīns vizuāli šūpojas
+        # How many pixels for penguin floating
         self.swim_bob_amplitude = 3
 
-        # Šūpošanās ātrums
+        # Swinging speed
         self.swim_bob_speed = 0.06
 
-        # ---------------- WALK ANIMATIONS ----------------
-
+        # WALK ANIMATIONS
         self.walk_animations = {
             "down": self.load_frames("walk_down"),
             "up": self.load_frames("walk_up"),
@@ -60,8 +56,7 @@ class Player:
             for frame in self.walk_animations["right"]
         ]
 
-        # ---------------- SIDE IDLE ----------------
-
+        # SIDE IDLE
         self.idle_side = self.load_image(
             "assets/penguin/idle_side.png"
         )
@@ -72,12 +67,10 @@ class Player:
             False
         )
 
-        # ---------------- SWIM ANIMATIONS ----------------
-
+        # SWIM ANIMATIONS
         self.swim_frames = self.load_frames("swim")
 
-        # ---------------- INITIAL IMAGE ----------------
-
+        # INITIAL IMAGE
         self.image = self.walk_animations["down"][0]
         self.mask = pygame.mask.from_surface(self.image)
 
@@ -85,10 +78,7 @@ class Player:
         self.mask_offset_x = 0
         self.mask_offset_y = 0
 
-    # ==================================================
     # LOAD IMAGE
-    # ==================================================
-
     def load_image(self, path):
 
         image = pygame.image.load(
@@ -102,10 +92,7 @@ class Player:
 
         return image
 
-    # ==================================================
     # LOAD ANIMATION FRAMES
-    # ==================================================
-
     def load_frames(self, name):
 
         frames = []
@@ -120,13 +107,8 @@ class Player:
 
         return frames
 
-    # ==================================================
     # SWIMMING DIRECTION
-    # ==================================================
-
     def get_swim_image(self, frame):
-
-        # Sākotnējais attēls paredzēts peldēšanai uz augšu
 
         if self.direction == "up":
             return frame
@@ -155,9 +137,7 @@ class Player:
                 180
             )
 
-        # Kreisajiem virzieniem apgriežam attēlu,
-        # lai pingvīna vēders būtu pareizajā pusē.
-
+        # For left side flip image
         flipped = pygame.transform.flip(
             frame,
             True,
@@ -184,21 +164,16 @@ class Player:
 
         return frame
 
-    # ==================================================
     # UPDATE ANIMATION
-    # ==================================================
-
     def update_animation(self, quantum_state):
 
-        # ---------------- ANIMATION SPEED ----------------
-
+        # ANIMATION SPEED
         if quantum_state == 0:
             animation_speed = self.walk_animation_speed
         else:
             animation_speed = self.swim_animation_speed
 
-        # ---------------- FRAME TIMER ----------------
-
+        # FRAME TIMER
         if self.moving:
 
             self.animation_timer += 1
@@ -216,12 +191,8 @@ class Player:
             self.animation_frame = 0
             self.animation_timer = 0
 
-        # ---------------- ICE ANIMATION ----------------
-
+        # ICE ANIMATION
         if quantum_state == 0:
-
-            # Pēc peldēšanas diagonālais virziens
-            # jāpārveido par ledus virzienu.
 
             if self.direction in (
                 "up_right",
@@ -254,8 +225,7 @@ class Player:
                     self.direction
                 ][self.animation_frame]
 
-        # ---------------- WATER ANIMATION ----------------
-
+        # WATER ANIMATION
         else:
 
             frame = self.swim_frames[
@@ -269,14 +239,10 @@ class Player:
             # Šūpošanās laiks
             self.swim_time += 1
 
-        # ---------------- UPDATE COLLISION MASK ----------------
-
+        # UPDATE COLLISION MASK
         self.mask = pygame.mask.from_surface(
             self.image
         )
-
-        # Attēls pēc pagriešanas var būt lielāks
-        # par spēlētāja sākotnējo 70 × 90 laukumu.
 
         self.mask_offset_x = (
             self.width - self.image.get_width()
@@ -286,10 +252,7 @@ class Player:
             self.height - self.image.get_height()
         ) // 2
 
-    # ==================================================
     # PLAYER MOVEMENT
-    # ==================================================
-
     def move(self, keys, quantum_state):
 
         old_x = self.x
@@ -298,8 +261,7 @@ class Player:
         dx = 0
         dy = 0
 
-        # ---------------- KEY INPUT ----------------
-
+        # KEY INPUT
         if keys[pygame.K_LEFT]:
             dx -= self.speed
 
@@ -316,12 +278,10 @@ class Player:
             dx != 0 or dy != 0
         )
 
-        # ---------------- DIRECTION ----------------
-
+        # DIRECTION
         if quantum_state == 1:
 
-            # Ūdenī ir 8 virzieni
-
+            # 8 directions in water
             if dx > 0 and dy < 0:
                 self.direction = "up_right"
 
@@ -348,8 +308,7 @@ class Player:
 
         else:
 
-            # Uz ledus ir 4 virzieni
-
+            # 4 directions on ice
             if dx > 0:
                 self.direction = "right"
 
@@ -362,13 +321,11 @@ class Player:
             elif dy > 0:
                 self.direction = "down"
 
-        # ---------------- APPLY MOVEMENT ----------------
-
+        # APPLY MOVEMENT
         self.x += dx
         self.y += dy
 
-        # ---------------- WORLD BOUNDARIES ----------------
-
+        # WORLD BOUNDARIES
         self.x = max(
             0,
             min(
@@ -397,8 +354,7 @@ class Player:
                 )
             )
 
-        # ---------------- UPDATE ANIMATION ----------------
-
+        # UPDATE ANIMATION
         self.update_animation(
             quantum_state
         )
@@ -410,10 +366,7 @@ class Player:
             self.y
         )
 
-    # ==================================================
     # GET RECT
-    # ==================================================
-
     def get_rect(self):
 
         return pygame.Rect(
@@ -423,30 +376,21 @@ class Player:
             self.height
         )
 
-    # ==================================================
     # SET POSITION
-    # ==================================================
-
     def set_position(self, x, y):
 
         self.x = x
         self.y = y
 
-    # ==================================================
     # DRAW PLAYER
-    # ==================================================
-
     def draw(self, screen, camera, quantum_state):
-
-        # Centrējam attēlu neatkarīgi no pagrieziena
 
         image_rect = self.image.get_rect()
         player_rect = self.get_rect()
 
         image_rect.center = player_rect.center
 
-        # ---------------- SWIMMING BOB EFFECT ----------------
-
+        # SWIMMING BOB EFFECT
         if quantum_state == 1:
 
             bob_offset = math.sin(
@@ -455,8 +399,7 @@ class Player:
 
             image_rect.y += round(bob_offset)
 
-        # ---------------- DRAW ----------------
-
+        # DRAW
         screen.blit(
             self.image,
             (

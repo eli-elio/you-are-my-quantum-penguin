@@ -1,7 +1,7 @@
 import random
 import math
 
-from quantum_fish import QuantumFish
+from src.quantum_fish import QuantumFish
 from settings import WIDTH, WORLD_WIDTH
 
 
@@ -9,17 +9,14 @@ class FishManager:
 
     def __init__(self):
 
-        # ---------------- FISH COLLECTION ----------------
-
+        # FISH COLLECTION
         self.fish = []
 
-        # ---------------- POPULATION SETTINGS ----------------
-
+        # POPULATION SETTINGS
         self.max_fish = 8
         self.initial_fish = 5
 
-        # ---------------- SPAWN SETTINGS ----------------
-
+        # SPAWN SETTINGS
         self.spawn_min = 3.0
         self.spawn_max = 6.0
 
@@ -35,10 +32,7 @@ class FishManager:
 
         self.initialized = False
 
-    # ==================================================
     # INITIAL FISH
-    # ==================================================
-
     def spawn_initial_fish(self, camera):
 
         """
@@ -80,10 +74,7 @@ class FishManager:
 
         self.initialized = True
 
-    # ==================================================
     # SPAWN NEW FISH
-    # ==================================================
-
     def spawn_fish(self, camera):
 
         """
@@ -144,19 +135,14 @@ class FishManager:
 
         self.fish.append(fish)
 
-    # ==================================================
     # UPDATE FISH
-    # ==================================================
-
     def update(self, dt, camera, world=None):
 
-        # ---------------- INITIAL POPULATION ----------------
-
+        # INITIAL POPULATION
         if not self.initialized:
             self.spawn_initial_fish(camera)
 
-        # ---------------- SPAWN TIMER ----------------
-
+        # SPAWN TIMER
         self.spawn_timer += dt
 
         if self.spawn_timer >= self.next_spawn:
@@ -171,8 +157,7 @@ class FishManager:
             if len(self.fish) < self.max_fish:
                 self.spawn_fish(camera)
 
-        # ---------------- UPDATE ACTIVE FISH ----------------
-
+        # UPDATE ACTIVE FISH
         for fish in self.fish:
 
             # Update movement, animation and quantum state
@@ -182,11 +167,9 @@ class FishManager:
             if world is not None:
                 fish.update_flying_height(dt, world)
 
-        # ---------------- REMOVE DISTANT FISH ----------------
-
+        # REMOVE DISTANT FISH
         # Fish are removed only after their entire sprite
         # has moved beyond the camera view plus a margin.
-
         left_limit = (
             camera.x - self.despawn_margin
         )
@@ -204,10 +187,7 @@ class FishManager:
             )
         ]
 
-    # ==================================================
     # DRAW FISH
-    # ==================================================
-
     def draw(self, screen, camera):
 
         """
@@ -220,11 +200,7 @@ class FishManager:
         for fish in self.fish:
             fish.draw(screen, camera)
 
-
-    # ==================================================
     # FISH CATCHING
-    # ==================================================
-
     def try_catch(self, player, layer):
         """
         Attempt to catch the nearest fish

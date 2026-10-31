@@ -20,8 +20,7 @@ class Background:
 
         ice_height = ICE_BOTTOM - ICE_TOP
 
-        # ---------------- SKY ----------------
-
+        # SKY
         sky_image = pygame.image.load(
             "assets/backgrounds/sky.png"
         ).convert()
@@ -31,8 +30,7 @@ class Background:
             (WORLD_WIDTH, mountains_height)
         )
 
-        # ---------------- FAR MOUNTAINS ----------------
-
+        # FAR MOUNTAINS
         far_image = pygame.image.load(
             "assets/backgrounds/far_mountains.png"
         ).convert_alpha()
@@ -42,8 +40,7 @@ class Background:
             mountains_height
         )
 
-        # ---------------- NEAR MOUNTAINS ----------------
-
+        # NEAR MOUNTAINS
         near_image = pygame.image.load(
             "assets/backgrounds/near_mountains.png"
         ).convert_alpha()
@@ -53,8 +50,7 @@ class Background:
             180
         )
 
-        # ---------------- ICE GROUND ----------------
-
+        # ICE GROUND
         ice_image = pygame.image.load(
             "assets/backgrounds/ice_ground.png"
         ).convert()
@@ -64,8 +60,7 @@ class Background:
             (WORLD_WIDTH, ice_height)
         )
 
-        # ---------------- UNDERWATER BACKGROUND ----------------
-
+        # UNDERWATER BACKGROUND
         water_image = pygame.image.load(
             "assets/backgrounds/underwater_bg.png"
         ).convert()
@@ -124,8 +119,7 @@ class Background:
 
     def draw(self, screen, camera):
 
-        # ---------------- SKY ----------------
-
+        # SKY
         screen.blit(
             self.sky,
             (
@@ -134,8 +128,7 @@ class Background:
             )
         )
 
-        # ---------------- FAR MOUNTAINS ----------------
-
+        # FAR MOUNTAINS
         self.draw_repeating_layer(
             screen,
             self.far_mountains,
@@ -144,8 +137,7 @@ class Background:
             0.25
         )
 
-        # ---------------- NEAR MOUNTAINS ----------------
-
+        # NEAR MOUNTAINS
         self.draw_repeating_layer(
             screen,
             self.near_mountains,
@@ -154,8 +146,7 @@ class Background:
             0.60
         )
 
-        # ---------------- ICE GROUND ----------------
-
+        # ICE GROUND
         screen.blit(
             self.ice_ground,
             (
@@ -164,8 +155,7 @@ class Background:
             )
         )
 
-        # ---------------- UNDERWATER BACKGROUND ----------------
-
+        # UNDERWATER BACKGROUND
         screen.blit(
             self.underwater_bg,
             (

@@ -22,15 +22,13 @@ class QuantumFish:
 
     def __init__(self, x, direction):
 
-        # ---------------- POSITION ----------------
-
+        # POSITION
         self.x = float(x)
 
         # Shared relative Y position for both quantum layers
         self.relative_y = random.uniform(0.15, 0.85)
 
-        # ---------------- MOVEMENT ----------------
-
+        # MOVEMENT
         # -1 = left, 1 = right
         self.direction = direction
 
@@ -55,8 +53,7 @@ class QuantumFish:
         self.wave_speed = random.uniform(1.5, 3.0)
         self.wave_amplitude = random.uniform(3, 7)
 
-        # ---------------- ANIMATION ----------------
-
+        # ANIMATION
         self.animation_time = 0
         self.animation_frame = 0
         self.animation_interval = random.uniform(0.12, 0.20)
@@ -69,8 +66,7 @@ class QuantumFish:
             self.load_image(variant[1])
         ]
 
-        # ---------------- SHADOW ----------------
-
+        # SHADOW
         shadow_image = pygame.image.load(
             "assets/fish/fish_shadow.png"
         ).convert_alpha()
@@ -82,8 +78,7 @@ class QuantumFish:
 
         self.shadow.set_alpha(85)
 
-        # ---------------- QUANTUM STATE ----------------
-
+        # QUANTUM STATE
         # Initial quantum state: |0>
         self.alpha = 1 + 0j
         self.beta = 0 + 0j
@@ -101,22 +96,17 @@ class QuantumFish:
         self.quantum_timer = 0
         self.quantum_interval = random.uniform(2.0, 4.0)
 
-        # ---------------- FLYING EFFECT ----------------
-
+        # FLYING EFFECT
         self.fly_height = random.uniform(15, 25)
 
-        # ---------------- OBSTACLE FLYING ----------------
-
+        # OBSTACLE FLYING
         self.current_fly_height = self.fly_height
 
         self.obstacle_extra_height = 0
 
         self.fly_transition_speed = 90
 
-    # ==================================================
     # IMAGE LOADING
-    # ==================================================
-
     def load_image(self, filename):
 
         image = pygame.image.load(
@@ -128,10 +118,7 @@ class QuantumFish:
             self.FISH_SIZE
         )
 
-    # ==================================================
     # QUANTUM GATES
-    # ==================================================
-
     def apply_h(self):
 
         alpha = self.alpha
@@ -165,14 +152,10 @@ class QuantumFish:
             self.gate_index + 1
         ) % len(self.gates)
 
-    # ==================================================
     # MOVEMENT
-    # ==================================================
-
     def update_movement(self, dt):
 
-        # ---------------- DIRECTION CHANGES ----------------
-
+        # DIRECTION CHANGES
         self.turn_timer += dt
 
         if self.turn_timer >= self.turn_interval:
@@ -194,8 +177,7 @@ class QuantumFish:
             if random.random() < 0.35:
                 self.direction *= -1
 
-        # ---------------- SMOOTH VERTICAL TURNING ----------------
-
+        # SMOOTH VERTICAL TURNING
         difference = (
             self.target_vertical_speed
             - self.vertical_speed
@@ -215,8 +197,7 @@ class QuantumFish:
 
             self.vertical_speed -= max_change
 
-        # ---------------- POSITION UPDATE ----------------
-
+        # POSITION UPDATE
         self.x += self.direction * self.speed * dt
 
         layer_height = WATER_BOTTOM - WATER_TOP
@@ -225,8 +206,7 @@ class QuantumFish:
             self.vertical_speed * dt / layer_height
         )
 
-        # ---------------- VERTICAL BOUNDARIES ----------------
-
+        # VERTICAL BOUNDARIES
         if self.relative_y < 0.12:
 
             self.relative_y = 0.12
@@ -251,14 +231,10 @@ class QuantumFish:
                 self.target_vertical_speed
             )
 
-        # ---------------- WAVE MOVEMENT ----------------
-
+        # WAVE MOVEMENT
         self.wave_time += self.wave_speed * dt
 
-    # ==================================================
     # ANIMATION
-    # ==================================================
-
     def update_animation(self, dt):
 
         self.animation_time += dt
@@ -271,10 +247,7 @@ class QuantumFish:
                 1 - self.animation_frame
             )
 
-    # ==================================================
     # QUANTUM EVOLUTION
-    # ==================================================
-
     def update_quantum(self, dt):
 
         self.quantum_timer += dt
@@ -290,10 +263,7 @@ class QuantumFish:
                 4.0
             )
 
-    # ==================================================
     # MAIN UPDATE
-    # ==================================================
-
     def update(self, dt):
 
         self.update_movement(dt)
@@ -302,10 +272,7 @@ class QuantumFish:
 
         self.update_quantum(dt)
 
-    # ==================================================
     # POSITION IN EACH LAYER
-    # ==================================================
-
     def get_layer_y(self, layer):
 
         if layer == 0:
@@ -322,10 +289,7 @@ class QuantumFish:
             bottom - top
         )
 
-    # ==================================================
     # OBSTACLE FLYING
-    # ==================================================
-
     def update_flying_height(self, dt, world):
 
         target_extra_height = 0
@@ -401,10 +365,7 @@ class QuantumFish:
 
             self.obstacle_extra_height -= max_change
 
-    # ==================================================
     # DRAW ONE QUANTUM PROJECTION
-    # ==================================================
-
     def draw_projection(
         self,
         screen,
@@ -416,8 +377,7 @@ class QuantumFish:
         if opacity <= 0:
             return
 
-        # ---------------- SELECT ANIMATION FRAME ----------------
-
+        # SELECT ANIMATION FRAME
         image = self.frames[self.animation_frame]
 
         # Original sprites face left
@@ -429,8 +389,7 @@ class QuantumFish:
                 False
             )
 
-        # ---------------- ROTATE FISH ----------------
-
+        # ROTATE FISH
         angle = math.degrees(
             math.atan2(
                 -self.vertical_speed,
@@ -450,8 +409,7 @@ class QuantumFish:
         image = image.copy()
         image.set_alpha(opacity)
 
-        # ---------------- WAVE OFFSET ----------------
-
+        # WAVE OFFSET
         wave_offset = math.sin(
             self.wave_time
         ) * self.wave_amplitude
@@ -461,8 +419,7 @@ class QuantumFish:
             + wave_offset
         )
 
-        # ---------------- FLYING SHADOW ----------------
-
+        # FLYING SHADOW
         if layer == 0:
 
             shadow_x = (
@@ -500,8 +457,7 @@ class QuantumFish:
                 + self.obstacle_extra_height
             )
 
-        # ---------------- DRAW FISH ----------------
-
+        # DRAW FISH
         image_rect = image.get_rect(
             center=(
                 camera.apply_x(
@@ -518,10 +474,7 @@ class QuantumFish:
             image_rect
         )
 
-    # ==================================================
     # DRAW BOTH QUANTUM PROJECTIONS
-    # ==================================================
-
     def draw(self, screen, camera):
 
         # Quantum measurement probabilities
@@ -546,10 +499,7 @@ class QuantumFish:
             water_opacity
         )
 
-    # ==================================================
     # QUANTUM MEASUREMENT
-    # ==================================================
-
     def measure(self):
         """
         Measure the fish in the computational basis.

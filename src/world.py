@@ -10,8 +10,7 @@ from settings import (
 class World:
     def __init__(self):
 
-        # ---------------- IMAGES ----------------
-
+        # IMAGES
         self.ice_cliff_image = pygame.image.load(
             "assets/objects/ice_cliff.png"
         ).convert_alpha()
@@ -29,8 +28,7 @@ class World:
         )
 
 
-        # ---------------- ICE OBSTACLES ----------------
-
+        # ICE OBSTACLES
         self.ice_obstacles = [
             self.create_ice_obstacle(1200, 900, 120, 300),
             self.create_ice_obstacle(1700, 750, 500, 120),
@@ -109,8 +107,7 @@ class World:
         if quantum_state != 0:
             return
 
-        # ---------------- X COLLISION ----------------
-
+        # X COLLISION
         player.x = new_x
         player.y = old_y
 
@@ -123,8 +120,7 @@ class World:
                 player.x = old_x
                 break
 
-        # ---------------- Y COLLISION ----------------
-
+        # Y COLLISION
         player.y = new_y
 
         for obstacle in self.ice_obstacles:
@@ -187,8 +183,7 @@ class World:
             quantum_state
     ):
 
-        # ---------------- ICE EDGE ----------------
-
+        # ICE EDGE
         screen.blit(
             self.ice_edge_image,
             (
@@ -197,8 +192,7 @@ class World:
             )
         )
 
-        # ---------------- ICE OBSTACLES ----------------
-
+        # ICE OBSTACLES
         if quantum_state == 0:
 
             for obstacle in self.ice_obstacles:
