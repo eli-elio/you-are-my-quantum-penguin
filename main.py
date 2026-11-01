@@ -8,6 +8,9 @@ from src.background import Background
 from src.fish_manager import FishManager
 from src.quantum_state import QuantumState
 from src.split_screen import SplitScreenCamera
+from src.hud import HUD
+from src.quest_manager import QuestManager
+from src.dialogue import Dialogue
 
 # INITIALIZATION
 pygame.init()
@@ -42,40 +45,14 @@ X_COST = 1
 H_COST = 2
 Z_COST = 3
 
-# HUD
-fish_icon = pygame.image.load(
-    "assets/fish/fish_1.png"
-).convert_alpha()
+# UI AND QUESTS
+hud = HUD()
+quests = QuestManager()
+dialogue = Dialogue()
 
-fish_icon = pygame.transform.smoothscale(
-    fish_icon,
-    (54, 36)
-)
 
-hud_font = pygame.font.SysFont(
-    "arial",
-    30,
-    bold=True
-)
-
-message_font = pygame.font.SysFont(
-    "arial",
-    24,
-    bold=True
-)
-
-# Temporary message displayed after an interaction
-message = ""
-message_timer = 0.0
-
-MESSAGE_DURATION = 1.8
-
-# HELPER FUNCTIONS
 def show_message(text):
-    global message, message_timer
-
-    message = text
-    message_timer = MESSAGE_DURATION
+    hud.show_message(text)
 
 
 def switch_layer(player, world, current_state):
@@ -231,6 +208,22 @@ while running:
 
         if event.type == pygame.KEYDOWN:
 
+            if event.key == pygame.K_TAB:
+                hud.toggle_controls()
+                continue
+
+            if hud.controls_open:
+                if event.key == pygame.K_ESCAPE:
+                    hud.toggle_controls()
+                continue
+
+            # While talking, F advances one line and other keys do nothing.
+            if dialogue.active:
+                if event.key == pygame.K_f:
+                    if dialogue.advance() and not quests.talked_to_partner:
+                        quests.talk_to_partner()
+                continue
+
             # X GATE: SWITCH QUANTUM LAYER
             if event.key == pygame.K_x:
                 probability_ice, probability_water = penguin_qubit.get_probabilities()
@@ -258,9 +251,32 @@ while running:
                 else:
                     show_message("Not enough fish for X gate!")
 
+            # TALK TO PARTNER
+            elif event.key == pygame.K_f:
+
+                # Talk to the partner when nearby in the ice layer.
+                partner_center_x = world.partner_x + world.partner_image.get_width() / 2
+                partner_center_y = world.partner_y + world.partner_image.get_height() / 2
+                player_center_x = player.x + player.width / 2
+                player_center_y = player.y + player.height / 2
+                near_partner = (
+                    quantum_state == 0
+                    and abs(player_center_x - partner_center_x) < 135
+                    and abs(player_center_y - partner_center_y) < 125
+                )
+
+                if near_partner:
+                    if not quests.talked_to_partner:
+                        dialogue.say([
+                            ("player", "I want to explore! Maybe I'll find the perfect pebble!"),
+                            ("partner", "Have fun! I'll be waiting here!"),
+                        ])
+                    else:
+                        dialogue.say([("partner", "Welcome back! How is your adventure?")])
+                    continue
+
             # CATCH FISH
             elif event.key == pygame.K_e:
-
                 probability_ice, probability_water = (
                     penguin_qubit.get_probabilities()
                 )
@@ -279,6 +295,7 @@ while running:
                 if result == "caught":
 
                     fish_count += 1
+                    quests.record_fish_caught()
 
                     show_message(
                         "Fish caught! +1 fish"
@@ -355,13 +372,25 @@ while running:
                         "Z gate activated! -3 fish"
                     )
 
+    # UPDATE QUANTUM PHASE BARRIER
+    world.update_quantum_barrier(
+        penguin_qubit
+    )
+
+    world.update_barrier_animation(dt)
+
     # PLAYER MOVEMENT
     keys = pygame.key.get_pressed()
 
-    old_x, old_y, new_x, new_y = player.move(
-        keys,
-        quantum_state
-    )
+    if dialogue.active or hud.controls_open:
+        # Pause movement during the conversation.
+        old_x = new_x = player.x
+        old_y = new_y = player.y
+    else:
+        old_x, old_y, new_x, new_y = player.move(
+            keys,
+            quantum_state
+        )
 
     probability_ice, probability_water = (
         penguin_qubit.get_probabilities()
@@ -371,6 +400,17 @@ while running:
             probability_ice > 1e-9
             and probability_water > 1e-9
     )
+
+    # Detect an attempted collision before movement is resolved.
+    # This triggers the barrier tutorial only when the penguin actually
+    # tries to walk into the closed barrier, not merely approaches it.
+    if (
+        not dialogue.active
+        and not hud.controls_open
+        and (new_x != old_x or new_y != old_y)
+        and world.barrier_collides(player, new_x, new_y, quantum_state)
+    ):
+        quests.touch_barrier()
 
     # COLLISION
     if is_superposition:
@@ -407,15 +447,9 @@ while running:
         world
     )
 
-    # MESSAGE TIMER
-    if message_timer > 0:
-
-        message_timer -= dt
-
-        if message_timer <= 0:
-
-            message_timer = 0
-            message = ""
+    # UPDATE QUESTS AND UI
+    quests.update(player.x, world.quantum_barrier.x, world.barrier_open)
+    dialogue.update(dt)
 
     #DRAW
     probability_ice, probability_water = (
@@ -443,100 +477,21 @@ while running:
         fish_manager.draw(screen, camera)
         player.draw(screen, camera, quantum_state)
 
-    # DRAW HUD
-    # HUD BACKGROUND
-    hud_background = pygame.Surface(
-        (370, 135),
-        pygame.SRCALPHA
+    # Draw speech bubbles in the world, then overlay the HUD.
+    if is_superposition:
+        dialogue.draw(screen, ice_camera, player, world, 0)
+    else:
+        dialogue.draw(screen, camera, player, world, quantum_state)
+
+    hint = quests.get_hint(
+        fish_count, player.x, world.quantum_barrier.x,
+        is_superposition, penguin_qubit.get_state_name()
     )
-
-    pygame.draw.rect(
-        hud_background,
-        (25, 40, 60, 185),
-        hud_background.get_rect(),
-        border_radius=15
-    )
-
-    screen.blit(
-        hud_background,
-        (10, 10)
-    )
-
-    # FISH ICON
-    screen.blit(
-        fish_icon,
-        (20, 20)
-    )
-
-    # FISH COUNT
-    fish_text = hud_font.render(
-        str(fish_count),
-        True,
-        (255, 255, 255)
-    )
-
-    screen.blit(
-        fish_text,
-        (85, 23)
-    )
-
-    # GATE COSTS
-    gate_text = message_font.render(
-        "X: 1 fish   H: 2 fish   Z: 3 fish",
-        True,
-        (255, 255, 255)
-    )
-
-    screen.blit(
-        gate_text,
-        (20, 60)
-    )
-
-    # QUANTUM STATE
-    state_text = message_font.render(
-        penguin_qubit.get_state_name(),
-        True,
-        (255, 255, 255)
-    )
-
-    screen.blit(
-        state_text,
-        (20, 95)
-    )
-
-    #INTERACTION MESSAGE
-    if message:
-
-        message_surface = message_font.render(
-            message,
-            True,
-            (255, 255, 255)
-        )
-
-        message_rect = message_surface.get_rect(
-            center=(
-                WIDTH // 2,
-                HEIGHT - 60
-            )
-        )
-
-        # Dark background for better readability
-        message_background = message_rect.inflate(
-            30,
-            16
-        )
-
-        pygame.draw.rect(
-            screen,
-            (35, 55, 75),
-            message_background,
-            border_radius=10
-        )
-
-        screen.blit(
-            message_surface,
-            message_rect
-        )
+    if dialogue.active:
+        hint = "Press F to continue the conversation"
+    hud.set_tutorial(hint)
+    hud.update(dt)
+    hud.draw(screen, fish_count, penguin_qubit, quests)
 
     # DISPLAY UPDATE
     pygame.display.flip()

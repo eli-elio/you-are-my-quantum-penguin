@@ -22,8 +22,8 @@ class Player:
         self.height = PENGUIN_HEIGHT
         self.speed = PENGUIN_SPEED
 
-        self.x = WIDTH // 2
-        self.y = ICE_BOTTOM - self.height - 120
+        self.x = 330
+        self.y = 1050
 
         # ANIMATION SETTINGS
         self.direction = "down"
