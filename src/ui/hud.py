@@ -11,10 +11,10 @@ class HUD:
         self.small_font = pygame.font.SysFont("arial", 19)
         self.message = ""
         self.message_timer = 0.0
-        self.tutorial_text = ""
+        self.tutorial_text = []
         self.tutorial_timer = 0.0
         self.tutorial_duration = 0.45
-        self.tutorial_previous = ""
+        self.tutorial_previous = []
         self.controls_open = False
 
     def toggle_controls(self):
@@ -23,7 +23,7 @@ class HUD:
     def set_tutorial(self, text):
         # Keep the current instruction visible until its objective changes.
         # Only the old instruction fades out when it has been completed.
-        text = text or ""
+        text = ([text] if isinstance(text, str) and text else list(text or []))
         if text != self.tutorial_text:
             self.tutorial_previous = self.tutorial_text
             self.tutorial_timer = self.tutorial_duration if self.tutorial_previous else 0.0
@@ -76,23 +76,24 @@ class HUD:
         self.panel(screen, shortcut_bg, (25, 40, 60, 165))
         screen.blit(shortcut, shortcut.get_rect(center=shortcut_bg.center))
 
-        # Active tutorial stays visible for as long as it is relevant.
-        if self.tutorial_text and not self.controls_open:
-            hint_text = self.small_font.render(self.tutorial_text, True, white)
-            hint_rect = hint_text.get_rect(center=(width // 2, height - 112))
-            bubble_rect = hint_rect.inflate(28, 15)
-            self.panel(screen, bubble_rect, (25, 40, 60, 215))
-            screen.blit(hint_text, hint_rect)
-        elif self.tutorial_timer > 0 and self.tutorial_previous and not self.controls_open:
-            alpha = int(255 * self.tutorial_timer / self.tutorial_duration)
-            hint_text = self.small_font.render(self.tutorial_previous, True, white)
-            hint_rect = hint_text.get_rect(center=(width // 2, height - 112))
-            bubble_rect = hint_rect.inflate(28, 15)
-            bubble = pygame.Surface(bubble_rect.size, pygame.SRCALPHA)
-            pygame.draw.rect(bubble, (25, 40, 60, int(alpha * 0.85)), bubble.get_rect(), border_radius=12)
-            screen.blit(bubble, bubble_rect.topleft)
-            hint_text.set_alpha(alpha)
-            screen.blit(hint_text, hint_rect)
+        # Each active tutorial has its own row. Fishing remains until first catch.
+        if not self.controls_open:
+            visible = self.tutorial_text
+            fading = False
+            if not visible and self.tutorial_timer > 0:
+                visible = self.tutorial_previous
+                fading = True
+            for index, instruction in enumerate(visible):
+                alpha = (int(255 * self.tutorial_timer / self.tutorial_duration)
+                         if fading else 255)
+                hint_text = self.small_font.render(instruction, True, white)
+                hint_text.set_alpha(alpha)
+                hint_rect = hint_text.get_rect(
+                    center=(width // 2, height - 112 - index * 39)
+                )
+                bubble_rect = hint_rect.inflate(28, 15)
+                self.panel(screen, bubble_rect, (25, 40, 60, int(alpha * 0.85)))
+                screen.blit(hint_text, hint_rect)
 
         if self.message:
             # Fit long messages within the screen without hiding the quest panel.
@@ -132,3 +133,4 @@ class HUD:
                 y += 43
             close_text = self.small_font.render("Press TAB or ESC to close", True, (192, 219, 232))
             screen.blit(close_text, close_text.get_rect(center=(width // 2, panel_rect.bottom - 24)))
+

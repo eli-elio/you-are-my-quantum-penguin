@@ -1,7 +1,7 @@
 import random
 import math
 
-from src.quantum_fish import QuantumFish
+from src.entities.quantum_fish import QuantumFish
 from settings import WIDTH, WORLD_WIDTH
 
 

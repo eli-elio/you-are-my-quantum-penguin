@@ -32,15 +32,27 @@ class QuestManager:
         else:
             self.objective = "Explore Antarctica"
 
-    def get_hint(self, fish_count, player_x, barrier_x, is_superposition, state_name):
+    def get_hints(self, fish_count, player_x, barrier_x, is_superposition, state_name):
+        """Return independent active tutorials; completing one does not hide another."""
         if not self.talked_to_partner:
-            return "Arrow keys: move  |  F: talk to your partner"
+            return ["Arrow keys: move  |  F: talk to your partner"]
+
+        hints = []
+        # Fishing is a one-time tutorial, independent of the barrier puzzle.
+        if not self.has_caught_fish:
+            hints.append("Find fish and press E to catch them")
+
         if self.reached_barrier and not self.passed_barrier:
             if state_name == "|-> SUPERPOSITION":
-                return "Barrier open! Move through it"
-            if not is_superposition:
-                return "Barrier needs |->  |  H: superposition (2 fish)"
-            return "Z: change the relative phase (3 fish)"
-        if not self.has_caught_fish:
-            return "Find fish and press E to catch them"
-        return ""
+                hints.append("Barrier open! Move through it")
+            elif not is_superposition:
+                hints.append("Barrier needs |->  |  H: superposition (2 fish)")
+            else:
+                hints.append("Z: change the relative phase (3 fish)")
+        return hints
+
+    def get_hint(self, fish_count, player_x, barrier_x, is_superposition, state_name):
+        """Compatibility with callers expecting one tutorial string."""
+        hints = self.get_hints(fish_count, player_x, barrier_x, is_superposition, state_name)
+        return hints[0] if hints else ""
+
