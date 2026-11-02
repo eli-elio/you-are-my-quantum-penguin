@@ -40,3 +40,9 @@ Explore Antarctica as a quantum penguin searching for something special for your
 Catch fish to power quantum gates, switch between ice and underwater environments, and use quantum superposition and phase changes to solve puzzles.
 
 **Current prototype:** The game includes exploration, fish catching, quantum gates, a split-screen superposition view, and a quantum phase barrier puzzle.
+
+## Prototype Presentation
+
+The presentation provides an overview of the current playable prototype, implemented features, quantum mechanics, AI usage, and plans for the final version.
+
+📄 [View Prototype Presentation (PDF)](presentation/Prototype%20Presentation.pdf)
